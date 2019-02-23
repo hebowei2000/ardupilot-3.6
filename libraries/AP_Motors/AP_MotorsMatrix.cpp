@@ -20,6 +20,7 @@
  */
 #include <AP_HAL/AP_HAL.h>
 #include "AP_MotorsMatrix.h"
+#include <GCS_MAVLink/GCS.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -153,6 +154,8 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     float   yaw_allowed = 1.0f;         // amount of yaw we can fit in
     float   unused_range;               // amount of yaw we can fit in the current channel
     float   thr_adj;                    // the difference between the pilot's desired throttle and throttle_thrust_best_rpy
+    float   roll_factor_tmp;
+
 
     // apply voltage and air pressure compensation
     const float compensation_gain = get_compensation_gain();
@@ -173,6 +176,22 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     }
 
     throttle_avg_max = constrain_float(throttle_avg_max, throttle_thrust, _throttle_thrust_max);
+
+    _roll_factor[0]=-1.0f;_roll_factor[1]=-1.0f;_roll_factor[2]=0.0f;_roll_factor[3]=0.0f;_roll_factor[4]=1.0f;_roll_factor[5]=1.0f;
+    _pitch_factor[0]=0.500f;_pitch_factor[1]=0.500f;_pitch_factor[2]=-1.000f;_pitch_factor[3]=-1.000f;_pitch_factor[4]=0.500f;_pitch_factor[5]=0.500f;
+    for (uint8_t a=0; a<AP_MOTORS_MAX_NUM_MOTORS; a++) {
+        if (motor_enabled[a]) {
+            roll_factor_tmp = _roll_factor[a];
+             _roll_factor[a] = _roll_factor[a] * gcs().get_ahrs_cos -2/safe_sqrt(3)*_pitch_factor[a]*gcs().get_ahrs_sin;
+             _pitch_factor[a] = _pitch_factor[a] * gcs().get_ahrs_cos + safe_sqrt(3)/2* roll_factor_tmp *gcs().get_ahrs_sin;
+
+             // scale factors back to -0.5 to +0.5 for each axis
+             //_roll_factor[a] = 0.5f*_roll_factor[a];
+             //_pitch_factor[a] = 0.5f*_pitch_factor[a]/(2*safe_sqrt(3)/3);
+        }
+    }
+
+    normalise_rpy_factors_simple();
 
     // calculate throttle that gives most possible room for yaw which is the lower of:
     //      1. 0.5f - (rpy_low+rpy_high)/2.0 - this would give the maximum possible margin above the highest motor and below the lowest
@@ -678,6 +697,43 @@ void AP_MotorsMatrix::normalise_rpy_factors()
             if (pitch_fac < fabsf(_pitch_factor[i])) {
                 pitch_fac = fabsf(_pitch_factor[i]);
             }
+            if (yaw_fac < fabsf(_yaw_factor[i])) {
+                yaw_fac = fabsf(_yaw_factor[i]);
+            }
+        }
+    }
+
+    // scale factors back to -0.5 to +0.5 for each axis
+    for (uint8_t i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+        if (motor_enabled[i]) {
+            if (!is_zero(roll_fac)) {
+                _roll_factor[i] = 0.5f*_roll_factor[i]/roll_fac;
+            }
+            if (!is_zero(pitch_fac)) {
+                _pitch_factor[i] = 0.5f*_pitch_factor[i]/pitch_fac;
+            }
+            if (!is_zero(yaw_fac)) {
+                _yaw_factor[i] = 0.5f*_yaw_factor[i]/yaw_fac;
+            }
+        }
+    }
+}
+
+void AP_MotorsMatrix::normalise_rpy_factors_simple()
+{
+    float roll_fac = (float)(2*safe_sqrt(3)/3);
+    float pitch_fac = 1.0f;
+    float yaw_fac = 0.0f;
+
+    // find maximum roll, pitch and yaw factors
+    for (uint8_t i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+        if (motor_enabled[i]) {
+            /*if (roll_fac < fabsf(_roll_factor[i])) {
+                roll_fac = fabsf(_roll_factor[i]);
+            }
+            if (pitch_fac < fabsf(_pitch_factor[i])) {
+                pitch_fac = fabsf(_pitch_factor[i]);
+            }*/
             if (yaw_fac < fabsf(_yaw_factor[i])) {
                 yaw_fac = fabsf(_yaw_factor[i]);
             }
