@@ -639,9 +639,10 @@ public:
 
     // get the VFR_HUD throttle
     int16_t get_hud_throttle(void) const { return num_gcs()>0?chan(0).vfr_hud_throttle():0; }
+    /**t fcm 0224 +**/
     float get_ahrs_cos;
     float get_ahrs_sin;
-    
+    /**t fcm 0224 +end**/
 private:
 
     static GCS *_singleton;

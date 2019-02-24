@@ -62,8 +62,9 @@ protected:
 
     // normalizes the roll, pitch and yaw factors so maximum magnitude is 0.5
     void                normalise_rpy_factors();
+    /**t fcm 0224 +**/
     void                normalise_rpy_factors_simple();
-
+    /**t fcm 0224 +end**/
     // call vehicle supplied thrust compensation if set
     void                thrust_compensation(void) override;
     

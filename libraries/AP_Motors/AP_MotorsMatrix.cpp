@@ -20,8 +20,9 @@
  */
 #include <AP_HAL/AP_HAL.h>
 #include "AP_MotorsMatrix.h"
+/**t fcm 0224 +**/
 #include <GCS_MAVLink/GCS.h>
-
+/**t fcm 0224 +end**/
 extern const AP_HAL::HAL& hal;
 
 // init
@@ -154,8 +155,9 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     float   yaw_allowed = 1.0f;         // amount of yaw we can fit in
     float   unused_range;               // amount of yaw we can fit in the current channel
     float   thr_adj;                    // the difference between the pilot's desired throttle and throttle_thrust_best_rpy
+    /**t fcm 0224 +**/
     float   roll_factor_tmp;
-
+    /**t fcm 0224 +end**/
 
     // apply voltage and air pressure compensation
     const float compensation_gain = get_compensation_gain();
@@ -176,7 +178,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     }
 
     throttle_avg_max = constrain_float(throttle_avg_max, throttle_thrust, _throttle_thrust_max);
-
+    /**t fcm 0224 +**/
     _roll_factor[0]=-1.0f;_roll_factor[1]=-1.0f;_roll_factor[2]=0.0f;_roll_factor[3]=0.0f;_roll_factor[4]=1.0f;_roll_factor[5]=1.0f;
     _pitch_factor[0]=0.500f;_pitch_factor[1]=0.500f;_pitch_factor[2]=-1.000f;_pitch_factor[3]=-1.000f;_pitch_factor[4]=0.500f;_pitch_factor[5]=0.500f;
     for (uint8_t a=0; a<AP_MOTORS_MAX_NUM_MOTORS; a++) {
@@ -192,7 +194,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     }
 
     normalise_rpy_factors_simple();
-
+    /**t fcm 0224 +end**/
     // calculate throttle that gives most possible room for yaw which is the lower of:
     //      1. 0.5f - (rpy_low+rpy_high)/2.0 - this would give the maximum possible margin above the highest motor and below the lowest
     //      2. the higher of:
@@ -718,7 +720,7 @@ void AP_MotorsMatrix::normalise_rpy_factors()
         }
     }
 }
-
+/**t fcm 0224 +**/
 void AP_MotorsMatrix::normalise_rpy_factors_simple()
 {
     float roll_fac = (float)(2*safe_sqrt(3)/3);
@@ -755,7 +757,7 @@ void AP_MotorsMatrix::normalise_rpy_factors_simple()
         }
     }
 }
-
+/**t fcm 0224 +end**/
 
 /*
   call vehicle supplied thrust compensation if set. This allows

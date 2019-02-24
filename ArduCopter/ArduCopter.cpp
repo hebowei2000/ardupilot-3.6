@@ -218,8 +218,11 @@ void Copter::loop()
 // Main loop - 400hz
 void Copter::fast_loop()
 {
+    /**t fcm 0224 +**/
     gcs().get_ahrs_cos=ahrs.cos_yaw();
     gcs().get_ahrs_sin=ahrs.sin_yaw();
+    /**t fcm 0224 +end**/
+
     // update INS immediately to get current gyro data populated
     ins.update();
 

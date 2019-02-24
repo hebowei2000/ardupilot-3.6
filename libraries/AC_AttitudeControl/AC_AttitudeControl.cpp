@@ -537,20 +537,26 @@ void AC_AttitudeControl::attitude_controller_run_quat()
     // Retrieve quaternion vehicle attitude
     // TODO add _ahrs.get_quaternion()
     Quaternion attitude_vehicle_quat;
-    attitude_vehicle_quat.from_rotation_matrix(_ahrs.get_rotation_body_to_ned());
 
+    /**t fcm 0224 -**/
+    //attitude_vehicle_quat.from_rotation_matrix(_ahrs.get_rotation_body_to_ned());
+    /**t fcm 0224 -end**/
+    /**t fcm 0224 +**/
+    //convert the three zero euler angle into quaternion
+    attitude_vehicle_quat.from_euler(0.0f,0.0f,0.0f);
+    /**t fcm 0224 +end**/
     // Compute attitude error
     Vector3f attitude_error_vector;
     thrust_heading_rotation_angles(_attitude_target_quat, attitude_vehicle_quat, attitude_error_vector, _thrust_error_angle);
 
     // Compute the angular velocity target from the attitude error
     _rate_target_ang_vel = update_ang_vel_target_from_att_error(attitude_error_vector);
-
+    /**t fcm 0224 -**/
     // Add feedforward term that attempts to ensure that roll and pitch errors rotate with the body frame rather than the reference frame.
     // todo: this should probably be a matrix that couples yaw as well.
-    _rate_target_ang_vel.x += attitude_error_vector.y * _ahrs.get_gyro().z;
-    _rate_target_ang_vel.y += -attitude_error_vector.x * _ahrs.get_gyro().z;
-
+    //_rate_target_ang_vel.x += attitude_error_vector.y * _ahrs.get_gyro().z;
+    //_rate_target_ang_vel.y += -attitude_error_vector.x * _ahrs.get_gyro().z;
+    /**t fcm 0224 -end**/
     ang_vel_limit(_rate_target_ang_vel, radians(_ang_vel_roll_max), radians(_ang_vel_pitch_max), radians(_ang_vel_yaw_max));
 
     // Add the angular velocity feedforward, rotated into vehicle frame
