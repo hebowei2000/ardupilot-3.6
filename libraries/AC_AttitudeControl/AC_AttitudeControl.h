@@ -363,7 +363,9 @@ protected:
     // the attitude controller as 321-intrinsic euler angle derivatives, in radians per
     // second.
     Vector3f            _attitude_target_euler_rate;
-
+    /**t fcm 0302 +**/
+    Vector3f             vehicle_attitude;
+    /**t fcm 0302 +end**/
     // This represents a quaternion rotation in NED frame to the target (setpoint)
     // attitude used in the attitude controller.
     Quaternion          _attitude_target_quat;

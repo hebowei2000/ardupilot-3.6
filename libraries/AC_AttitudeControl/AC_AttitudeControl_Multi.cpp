@@ -1,7 +1,9 @@
 #include "AC_AttitudeControl_Multi.h"
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Math/AP_Math.h>
-
+/**t fcm 0302 +**/
+#include <GCS_MAVLink/GCS.h>
+/**t fcm 0302 +end**/
 // table of user settable parameters
 const AP_Param::GroupInfo AC_AttitudeControl_Multi::var_info[] = {
     // parameters from parent vehicle
@@ -254,18 +256,22 @@ void AC_AttitudeControl_Multi::rate_controller_run()
 {
     // move throttle vs attitude mixing towards desired (called from here because this is conveniently called on every iteration)
     update_throttle_rpy_mix();
-    /**t fcm 0224 -**/
     Vector3f gyro_latest = _ahrs.get_gyro_latest();
+    /**t lzb 0302 +**/
+    float gyro_latest_ex;
+    float gyro_latest_ey;
+    gyro_latest_ex = gyro_latest.x * gcs().get_ahrs_cos - gyro_latest.y * gcs().get_ahrs_sin - vehicle_attitude.x * gyro_latest.z * gcs().get_ahrs_sin - vehicle_attitude.y * gyro_latest.z * gcs().get_ahrs_cos;
+    gyro_latest_ey = gyro_latest.x * gcs().get_ahrs_sin + gyro_latest.y * gcs().get_ahrs_cos + vehicle_attitude.x * gyro_latest.z * gcs().get_ahrs_cos - vehicle_attitude.y * gyro_latest.z * gcs().get_ahrs_sin;
 
+    _motors.set_roll(rate_target_to_motor_roll(gyro_latest_ex, _rate_target_ang_vel.x));
+    _motors.set_pitch(rate_target_to_motor_pitch(gyro_latest_ey, _rate_target_ang_vel.y));
+    _motors.set_yaw(rate_target_to_motor_yaw(gyro_latest.z, _rate_target_ang_vel.z));
+    /**t lzb 0302 +end**/
+    /**t fcm 0224 -**/
     //_motors.set_roll(rate_target_to_motor_roll(gyro_latest.x, _rate_target_ang_vel.x));
     //_motors.set_pitch(rate_target_to_motor_pitch(gyro_latest.y, _rate_target_ang_vel.y));
     //_motors.set_yaw(rate_target_to_motor_yaw(gyro_latest.z, _rate_target_ang_vel.z));
     /**t fcm 0224 -end**/
-    /**t fcm 0224 +**/
-    _motors.set_roll(rate_target_to_motor_roll(0.0f, _rate_target_ang_vel.x));
-    _motors.set_pitch(rate_target_to_motor_pitch(0.0f, _rate_target_ang_vel.y));
-    _motors.set_yaw(rate_target_to_motor_yaw(gyro_latest.z, _rate_target_ang_vel.z));
-    /**t fcm 0224 +end**/
     control_monitor_update();
 }
 
